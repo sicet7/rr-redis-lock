@@ -1,6 +1,7 @@
 package redislock
 
 import (
+	"context"
 	"github.com/redis/go-redis/v9"
 	"github.com/roadrunner-server/errors"
 	"go.uber.org/zap"
@@ -11,13 +12,14 @@ import (
 const PluginName string = "redislock"
 
 type Config struct {
-	BackOff      time.Duration  `mapstructure:"backoff"`
-	ClientConfig *client.Config `mapstructure:"client"`
+	RetryInterval time.Duration  `mapstructure:"retry_interval"`
+	ClientConfig  *client.Config `mapstructure:"client"`
 }
 
 type Plugin struct {
+	enabled     bool
 	log         *zap.Logger
-	redisClient *redis.UniversalClient
+	redisClient redis.UniversalClient
 	cfg         *Config
 }
 
@@ -48,18 +50,40 @@ func (p *Plugin) Init(cfg Configurer, log Logger) error {
 		p.cfg.ClientConfig.InitDefaults()
 	}
 
-	p.log = log.NamedLogger(PluginName)
+	if p.cfg.RetryInterval == 0 {
+		p.cfg.RetryInterval = 50 * time.Millisecond
+	}
 
+	p.log = log.NamedLogger(PluginName)
+	p.enabled = true
 	return nil
 }
 
-func (p *Plugin) RedisClient() (*redis.UniversalClient, error) {
+func (p *Plugin) Serve() chan error {
+	p.enabled = true
+	return make(chan error, 1)
+}
+
+func (p *Plugin) Stop(ctx context.Context) error {
+	p.enabled = false
+	if p.redisClient != nil {
+		_ = p.redisClient.Close()
+		p.redisClient = nil
+	}
+	return nil
+}
+
+func (p *Plugin) Enabled() bool {
+	return p.enabled
+}
+
+func (p *Plugin) RedisClient() (redis.UniversalClient, error) {
 	if p.redisClient == nil {
-		var err error
-		p.redisClient, err = client.NewRedisDriver(p.log, p.cfg.ClientConfig)
+		c, err := client.NewRedisDriver(p.log, p.cfg.ClientConfig)
 		if err != nil {
 			return nil, err
 		}
+		p.redisClient = c
 	}
 	return p.redisClient, nil
 }

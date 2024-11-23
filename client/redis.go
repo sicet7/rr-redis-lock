@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRedisDriver(log *zap.Logger, cfg *Config) (*redis.UniversalClient, error) {
+func NewRedisDriver(log *zap.Logger, cfg *Config) (redis.UniversalClient, error) {
 	tlsConfig, err := tlsConfig(cfg.TLSConfig)
 	if err != nil {
 		return nil, err
@@ -46,5 +46,5 @@ func NewRedisDriver(log *zap.Logger, cfg *Config) (*redis.UniversalClient, error
 		log.Warn("failed to instrument redis tracing, driver will work without tracing", zap.Error(err))
 	}
 
-	return &client, nil
+	return client, nil
 }
