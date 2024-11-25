@@ -1,5 +1,5 @@
 # RoadRunner Redis Lock
-This is a Proff of concept repository.
+This is a proof of concept repository.
 
 ## PHP Implementation
 ```php
