@@ -5,20 +5,17 @@ if ttl == nil then
     return "Invalid ttl"
 end
 
-local storeType = redis.call("TYPE", key)["ok"]
+local writeLockKey = "l:" .. key .. ":w"
 
-if storeType ~= "none" and storeType ~= "hash" then
+-- cannot lock if exclusive lock is set
+if redis.call("EXISTS", writeLockKey) == 1 then
     return 0
 end
 
-redis.call("HSET", key, value, "f")
+local readLockKey = "l:" .. key .. ":r:" .. value
 if ttl > 0 then
-    redis.call("HPEXPIRE", key, value)
+    redis.call("SET", readLockKey, "val", "PX", ttl)
+else
+    redis.call("SET", readLockKey, "val")
 end
-
-if storeType == "hash" then
-    local result = redis.call("HGET", key, value)
-    if result ~= nil and result ~= false then
-        return 1
-    end
-end
+return 1
