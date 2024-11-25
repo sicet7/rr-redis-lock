@@ -1,5 +1,6 @@
 # RoadRunner Redis Lock
 This is a proof of concept repository.
+Based on the [lock plugin](https://github.com/roadrunner-server/lock) from [roadrunner-server](https://github.com/roadrunner-server)
 
 ## Configuration
 ```yml
