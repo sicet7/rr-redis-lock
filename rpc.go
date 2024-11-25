@@ -236,10 +236,6 @@ func (r *rpc) ForceRelease(req *lockApi.Request, resp *lockApi.Response) error {
 		return errors.New("service has stopped")
 	}
 
-	if req.GetId() == "" {
-		return errors.New("empty ID is not allowed")
-	}
-
 	c, err := r.plugin.RedisClient()
 	if err != nil {
 		return err
