@@ -4,7 +4,13 @@ This is a proof of concept repository.
 ## Configuration
 ```yml
 redislock:
-    client: # The client section documentation: https://github.com/roadrunner-server/docs/blob/cfd26f23e442fb3fe98533a05c99a9d0bb89e553/kv/redis.md
+    # When polling to get a lock, how often should we try to get the lock
+    # Default: 50
+    # Unit: milliseconds
+    retry_interval: 100
+
+    # The client section documentation: https://github.com/roadrunner-server/docs/blob/cfd26f23e442fb3fe98533a05c99a9d0bb89e553/kv/redis.md
+    client:
         addrs:
             - "${REDIS_HOST:-127.0.0.1}:${REDIS_PORT:-6379}"
         username: "${REDIS_USERNAME}"
